@@ -2,14 +2,11 @@
 import { store } from './store.js';
 
 // Elements del DOM
-const clockEl = document.getElementById('system-clock');
 const dateEl = document.getElementById('system-date');
 
-const listUrgents = document.getElementById('list-urgents');
 const listDaily = document.getElementById('list-daily');
 const listProjects = document.getElementById('list-projects');
 
-const cUrgents = document.getElementById('count-urgents');
 const cDaily = document.getElementById('count-daily');
 const cProjects = document.getElementById('count-projects');
 
@@ -24,14 +21,6 @@ const closeBtns = document.querySelectorAll('.close-modal');
 const taskForm = document.getElementById('task-form');
 const projectForm = document.getElementById('project-form');
 
-// Rellotge del sistema
-function updateClock() {
-    const now = new Date();
-    clockEl.textContent = now.toLocaleTimeString('ca-ES');
-    dateEl.textContent = now.toLocaleDateString('ca-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-}
-setInterval(updateClock, 1000);
-updateClock();
 
 // Funcions de Models
 function openModal(modal) { modal.classList.remove('hidden'); }
@@ -41,7 +30,7 @@ btnAddTask.addEventListener('click', () => {
     taskForm.reset();
     document.getElementById('task-id').value = '';
     document.getElementById('task-notes').value = '';
-    document.getElementById('task-modal-title').textContent = 'Nova Incidència / Tasca';
+    document.getElementById('task-modal-title').textContent = 'Nova Tasca';
     openModal(taskModal);
 });
 
@@ -72,13 +61,12 @@ taskForm.addEventListener('submit', (e) => {
     const id = document.getElementById('task-id').value;
     const title = document.getElementById('task-title').value;
     const priority = document.getElementById('task-priority').value;
-    const tag = document.getElementById('task-tag').value;
     const notes = document.getElementById('task-notes').value;
 
     if (id) {
-        store.updateTask(id, { title, priority, tag, notes });
+        store.updateTask(id, { title, priority, notes });
     } else {
-        store.addTask({ title, priority, tag, notes });
+        store.addTask({ title, priority, notes });
     }
     closeModal(taskModal);
 });
@@ -100,13 +88,11 @@ projectForm.addEventListener('submit', (e) => {
 
 // Renderització
 function renderTasks(data) {
-    listUrgents.innerHTML = '';
     listDaily.innerHTML = '';
-    let urgentsCount = 0;
     let dailyCount = 0;
 
-    // Sort per data més recent
-    const sortedTasks = [...(data.tasks || [])].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    // Sort per ordre manual (ascendent), nou elements al final
+    const sortedTasks = [...(data.tasks || [])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
     sortedTasks.forEach(task => {
         const card = document.createElement('div');
@@ -131,22 +117,13 @@ function renderTasks(data) {
                     <button class="btn-icon delete" data-id="${task.id}" data-type="task" title="Eliminar"><i class='bx bx-trash'></i></button>
                 </div>
             </div>
-            <div class="task-meta">
-                <span class="tag ${task.tag}">${task.tag.toUpperCase()}</span>
-            </div>
             ${task.notes ? `<div class="task-notes">${task.notes}</div>` : ''}
         `;
 
-        if (task.priority === 'urgent' && !task.completed) {
-            listUrgents.appendChild(card);
-            urgentsCount++;
-        } else {
-            listDaily.appendChild(card);
-            if (!task.completed) dailyCount++;
-        }
+        listDaily.appendChild(card);
+        if (!task.completed) dailyCount++;
     });
 
-    cUrgents.textContent = urgentsCount;
     cDaily.textContent = dailyCount;
 }
 
@@ -154,7 +131,8 @@ function renderProjects(data) {
     listProjects.innerHTML = '';
     let projCount = 0;
 
-    const sortedProjects = [...(data.projects || [])].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    // Sort per ordre manual (ascendent)
+    const sortedProjects = [...(data.projects || [])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
     sortedProjects.forEach(proj => {
         const card = document.createElement('div');
@@ -212,7 +190,6 @@ document.body.addEventListener('click', (e) => {
                 document.getElementById('task-id').value = task.id;
                 document.getElementById('task-title').value = task.title;
                 document.getElementById('task-priority').value = task.priority;
-                document.getElementById('task-tag').value = task.tag;
                 document.getElementById('task-notes').value = task.notes || '';
                 document.getElementById('task-modal-title').textContent = 'Editar Tasca';
                 openModal(document.getElementById('task-modal'));
@@ -235,10 +212,10 @@ document.body.addEventListener('click', (e) => {
     if (btnDel) {
         const id = btnDel.dataset.id;
         const type = btnDel.dataset.type;
-        if (confirm("Segur que vols eliminar aquest registre de forma permanent?")) {
-            if (type === 'task') store.deleteTask(id);
-            else if (type === 'project') store.deleteProject(id);
-        }
+
+        if (type === 'task') store.deleteTask(id);
+        else if (type === 'project') store.deleteProject(id);
+
     }
 });
 
@@ -248,12 +225,35 @@ store.subscribe((data) => {
     renderProjects(data);
 });
 
+// Helper: troba l'element davant del qual inserir durant el drag
+function getDragAfterElement(container, y) {
+    const cards = [...container.querySelectorAll('.task-card:not(.dragging)')];
+    return cards.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        if (offset < 0 && offset > closest.offset) {
+            return { offset, element: child };
+        }
+        return closest;
+    }, { offset: Number.NEGATIVE_INFINITY }).element;
+}
+
 // Implementació Drag and Drop (Zones de destí)
-const columns = [listUrgents, listDaily, listProjects];
+const columns = [listDaily, listProjects];
 columns.forEach(col => {
     col.addEventListener('dragover', e => {
         e.preventDefault();
         col.classList.add('drag-over');
+        // Reposicionament visual en temps real
+        const draggingCard = document.querySelector('.task-card.dragging');
+        if (draggingCard) {
+            const afterElement = getDragAfterElement(col, e.clientY);
+            if (afterElement == null) {
+                col.appendChild(draggingCard);
+            } else {
+                col.insertBefore(draggingCard, afterElement);
+            }
+        }
     });
 
     col.addEventListener('dragleave', e => {
@@ -267,29 +267,33 @@ columns.forEach(col => {
         try {
             const dataStr = e.dataTransfer.getData('text/plain');
             if (!dataStr) return;
-            // Mode retro-compatible pels tests globals
             const data = dataStr.startsWith('{') ? JSON.parse(dataStr) : { type: 'task', id: dataStr };
 
             if (col.id === 'list-projects') {
                 if (data.type === 'task') {
-                    // Codi de promoció de Tasca -> Projecte
+                    // Promoció Tasca -> Projecte
                     const task = store.data.tasks.find(t => t.id === data.id);
                     if (task) {
                         store.deleteTask(data.id);
                         store.addProject({ title: task.title, progress: 0 });
                     }
+                } else if (data.type === 'project') {
+                    // Reordre dins de la columna de projectes
+                    const newOrder = [...col.querySelectorAll('.task-card')].map(c => c.dataset.id);
+                    store.reorderProjects(newOrder);
                 }
             } else {
-                const isUrgent = col.id === 'list-urgents';
+                // col === listDaily
                 if (data.type === 'task') {
-                    // Moviment canviant la prioritat de la Tasca
-                    store.updateTask(data.id, { priority: isUrgent ? 'urgent' : 'medium' });
+                    // Reordre dins de la columna de tasques
+                    const newOrder = [...col.querySelectorAll('.task-card')].map(c => c.dataset.id);
+                    store.reorderTasks(newOrder);
                 } else if (data.type === 'project') {
                     // Reversió Projecte -> Tasca
                     const proj = store.data.projects.find(p => p.id === data.id);
                     if (proj) {
                         store.deleteProject(data.id);
-                        store.addTask({ title: proj.title, priority: isUrgent ? 'urgent' : 'medium', tag: 'support' });
+                        store.addTask({ title: proj.title, priority: 'medium', tag: 'support' });
                     }
                 }
             }
@@ -301,3 +305,4 @@ columns.forEach(col => {
 
 // Inicialització completada
 store.init();
+

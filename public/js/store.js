@@ -34,11 +34,15 @@ class Store {
 
     // Gestió de Tasques
     addTask(task) {
+        const maxOrder = this.data.tasks.length > 0
+            ? Math.max(...this.data.tasks.map(t => t.order ?? 0))
+            : -1;
         this.data.tasks.push({
             ...task,
             id: Date.now().toString(),
             completed: false,
-            createdAt: new Date().toISOString()
+            createdAt: new Date().toISOString(),
+            order: maxOrder + 1
         });
         this.save();
     }
@@ -56,12 +60,24 @@ class Store {
         this.save();
     }
 
+    reorderTasks(newOrderIds) {
+        newOrderIds.forEach((id, index) => {
+            const task = this.data.tasks.find(t => t.id === id);
+            if (task) task.order = index;
+        });
+        this.save();
+    }
+
     // Gestió de Projectes
     addProject(project) {
+        const maxOrder = this.data.projects.length > 0
+            ? Math.max(...this.data.projects.map(p => p.order ?? 0))
+            : -1;
         this.data.projects.push({
             ...project,
             id: Date.now().toString(),
-            createdAt: new Date().toISOString()
+            createdAt: new Date().toISOString(),
+            order: maxOrder + 1
         });
         this.save();
     }
@@ -76,6 +92,14 @@ class Store {
 
     deleteProject(id) {
         this.data.projects = this.data.projects.filter(p => p.id !== id);
+        this.save();
+    }
+
+    reorderProjects(newOrderIds) {
+        newOrderIds.forEach((id, index) => {
+            const proj = this.data.projects.find(p => p.id === id);
+            if (proj) proj.order = index;
+        });
         this.save();
     }
 

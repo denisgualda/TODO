@@ -13,28 +13,12 @@
 
 <body>
     <div class="app-container">
-        <!-- Sidebar Navigation -->
-        <aside class="sidebar glass">
-            <div class="logo">
-                <div class="logo-icon"><i class='bx bx-laptop'></i></div>
-                <span>TODO</span>
-            </div>
-            <nav class="nav-menu">
-                <a href="#" class="nav-item active" data-view="dashboard">
-                    <i class='bx bx-grid-alt'></i>
-
-                </a>
-            </nav>
-            <div class="sidebar-footer">
-                <div class="clock" id="system-clock">00:00:00</div>
-                <div class="date" id="system-date">-- -- ----</div>
-            </div>
-        </aside>
 
         <!-- Main Workspace -->
         <main class="main-content">
             <header class="top-header">
                 <div class="greeting">
+                    <h1>TODO</h1>
                 </div>
                 <div class="actions">
                     <button class="btn btn-primary" id="btn-add-task">
@@ -47,29 +31,6 @@
             </header>
 
             <div class="dashboard-grid">
-                <!-- Urgents Column -->
-                <section class="task-column glass">
-                    <div class="col-header">
-                        <h2 class="col-title">Tasques</h2>
-                        <span class="badge" id="count-urgents">0</span>
-                    </div>
-                    <div class="task-list" id="list-urgents">
-                        <!-- Tasks go here -->
-                    </div>
-                </section>
-
-
-                <!-- Projects Column -->
-                <section class="task-column glass">
-                    <div class="col-header">
-                        <div class="col-indicator accent"></div>
-                        <h2 class="col-title">Petits Projectes</h2>
-                        <span class="badge" id="count-projects">0</span>
-                    </div>
-                    <div class="task-list" id="list-projects">
-                        <!-- Projects go here -->
-                    </div>
-                </section>
 
                 <!-- Daily Tasks Column -->
                 <section class="task-column glass">
@@ -82,6 +43,17 @@
                     </div>
                 </section>
 
+                <!-- Projects Column -->
+                <section class="task-column glass">
+                    <div class="col-header">
+                        <div class="col-indicator accent"></div>
+                        <h2 class="col-title">Projectes</h2>
+                        <span class="badge" id="count-projects">0</span>
+                    </div>
+                    <div class="task-list" id="list-projects">
+                        <!-- Projects go here -->
+                    </div>
+                </section>
             </div>
         </main>
     </div>
@@ -107,16 +79,6 @@
                                 <option value="low">Baixa</option>
                                 <option value="medium" selected>Mitjana</option>
                                 <option value="urgent">Alta / Urgent</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Etiqueta / Sistema</label>
-                            <select id="task-tag">
-                                <option value="hardware">Hardware</option>
-                                <option value="software">Software</option>
-                                <option value="network">Xarxes</option>
-                                <option value="servers">Servidors</option>
-                                <option value="support">Suport Usuari</option>
                             </select>
                         </div>
                     </div>
