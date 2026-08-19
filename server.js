@@ -43,6 +43,7 @@ app.post('/api/data', async (req, res) => {
         await fs.writeFile(storeFile, JSON.stringify(req.body, null, 2), 'utf8');
         res.json({ success: true });
     } catch (error) {
+        console.error("Save error:", error);
         res.status(500).json({ error: "Error d'escriptura de dades" });
     }
 });

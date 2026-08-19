@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="/css/styles.css">
+    <script type="module" src="./js/main.js"></script>
 </head>
 
 <body>
@@ -72,12 +73,13 @@
 
                 <!-- Daily Tasks Column -->
                 <section class="task-column glass">
-                    <button class="btn btn-primary" id="btn-add-task">
-                        <i class='bx bx-plus-circle'></i> Registrar Tasca
-                    </button>
-                    <button class="btn btn-secondary" id="btn-add-project">
-                        <i class='bx bx-folder-plus'></i> Creació Projecte
-                    </button>
+                    <div class="col-header">
+                        <h2 class="col-title">Diàries</h2>
+                        <span class="badge" id="count-daily">0</span>
+                    </div>
+                    <div class="task-list" id="list-daily">
+                        <!-- Tasks go here -->
+                    </div>
                 </section>
 
             </div>
@@ -161,10 +163,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Store i App Lògica -->
-    <script type="module" src="/js/store.js"></script>
-    <script type="module" src="/js/app.js"></script>
 </body>
 
 </html>
