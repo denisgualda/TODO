@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ca">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TODO</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar glass">
+            <div class="logo">
+                <div class="logo-icon"><i class='bx bx-laptop'></i></div>
+                <span>TODO</span>
+            </div>
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active" data-view="dashboard">
+                    <i class='bx bx-grid-alt'></i>
+
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="clock" id="system-clock">00:00:00</div>
+                <div class="date" id="system-date">-- -- ----</div>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="main-content">
+            <header class="top-header">
+                <div class="greeting">
+                </div>
+                <div class="actions">
+                    <button class="btn btn-primary" id="btn-add-task">
+                        <i class='bx bx-plus-circle'></i> Registrar Tasca
+                    </button>
+                    <button class="btn btn-secondary" id="btn-add-project">
+                        <i class='bx bx-folder-plus'></i> Creació Projecte
+                    </button>
+                </div>
+            </header>
+
+            <div class="dashboard-grid">
+                <!-- Urgents Column -->
+                <section class="task-column glass">
+                    <div class="col-header">
+                        <h2 class="col-title">Tasques</h2>
+                        <span class="badge" id="count-urgents">0</span>
+                    </div>
+                    <div class="task-list" id="list-urgents">
+                        <!-- Tasks go here -->
+                    </div>
+                </section>
+
+
+                <!-- Projects Column -->
+                <section class="task-column glass">
+                    <div class="col-header">
+                        <div class="col-indicator accent"></div>
+                        <h2 class="col-title">Petits Projectes</h2>
+                        <span class="badge" id="count-projects">0</span>
+                    </div>
+                    <div class="task-list" id="list-projects">
+                        <!-- Projects go here -->
+                    </div>
+                </section>
+
+                <!-- Daily Tasks Column -->
+                <section class="task-column glass">
+                    <button class="btn btn-primary" id="btn-add-task">
+                        <i class='bx bx-plus-circle'></i> Registrar Tasca
+                    </button>
+                    <button class="btn btn-secondary" id="btn-add-project">
+                        <i class='bx bx-folder-plus'></i> Creació Projecte
+                    </button>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Tasca -->
+    <div class="modal hidden" id="task-modal">
+        <div class="modal-content glass">
+            <div class="modal-header">
+                <h3 id="task-modal-title">Nova Incidència / Tasca</h3>
+                <button class="close-modal" data-close="task-modal"><i class='bx bx-x'></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="task-form">
+                    <input type="hidden" id="task-id">
+                    <div class="form-group">
+                        <label>Descripció del problema / tasca</label>
+                        <input type="text" id="task-title" required placeholder="Ex: Canviar tòner impressora direcció">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Prioritat</label>
+                            <select id="task-priority">
+                                <option value="low">Baixa</option>
+                                <option value="medium" selected>Mitjana</option>
+                                <option value="urgent">Alta / Urgent</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Etiqueta / Sistema</label>
+                            <select id="task-tag">
+                                <option value="hardware">Hardware</option>
+                                <option value="software">Software</option>
+                                <option value="network">Xarxes</option>
+                                <option value="servers">Servidors</option>
+                                <option value="support">Suport Usuari</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Notes / Observacions</label>
+                        <textarea id="task-notes" rows="3"
+                            placeholder="Detalls addicionals, comandaments executats, logs d'errors..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Desar Registre</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Projecte -->
+    <div class="modal hidden" id="project-modal">
+        <div class="modal-content glass">
+            <div class="modal-header">
+                <h3 id="project-modal-title">Nou Projecte</h3>
+                <button class="close-modal" data-close="project-modal"><i class='bx bx-x'></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="project-form">
+                    <input type="hidden" id="project-id">
+                    <div class="form-group">
+                        <label>Nom del projecte</label>
+                        <input type="text" id="project-title" required
+                            placeholder="Ex: Migració Office 365 departament Vendes">
+                    </div>
+                    <div class="form-group">
+                        <label>Progrés d'execució (%)</label>
+                        <div class="progress-input-wrapper">
+                            <input type="range" id="project-progress-range" min="0" max="100" value="0">
+                            <span id="progress-value-display">0%</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Notes / Requisits del Projecte</label>
+                        <textarea id="project-notes" rows="3"
+                            placeholder="Descripció general, requisits restants..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-secondary btn-block">Desar Projecte</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Store i App Lògica -->
+    <script type="module" src="/js/store.js"></script>
+    <script type="module" src="/js/app.js"></script>
+</body>
+
+</html>
