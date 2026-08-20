@@ -310,6 +310,9 @@ body {
     border-radius: var(--radius-md);
     padding: 16px;
     cursor: default;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
     transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
     animation: fadeIn 0.3s ease-out;
 }

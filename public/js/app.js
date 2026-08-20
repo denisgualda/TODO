@@ -238,6 +238,124 @@ function getDragAfterElement(container, y) {
     }, { offset: Number.NEGATIVE_INFINITY }).element;
 }
 
+let touchDragState = null;
+
+function getCardTypeFromList(list) {
+    return list && list.id === 'list-projects' ? 'project' : 'task';
+}
+
+function reorderListFromDOM(list, type) {
+    const ids = [...list.querySelectorAll('.task-card')].map(card => card.dataset.id);
+    if (type === 'task') {
+        store.reorderTasks(ids);
+    } else {
+        store.reorderProjects(ids);
+    }
+}
+
+function moveCardToList(card, targetList) {
+    const sourceList = card.closest('.task-list');
+    const sourceType = getCardTypeFromList(sourceList);
+    const targetType = getCardTypeFromList(targetList);
+    const id = card.dataset.id;
+
+    if (!sourceList || !targetList || sourceList === targetList) {
+        reorderListFromDOM(sourceList || targetList, sourceType || targetType);
+        return;
+    }
+
+    if (sourceType === 'task' && targetType === 'project') {
+        const task = store.data.tasks.find(t => t.id === id);
+        if (task) {
+            store.deleteTask(id);
+            store.addProject({ title: task.title, progress: 0, notes: task.notes || '' });
+        }
+        return;
+    }
+
+    if (sourceType === 'project' && targetType === 'task') {
+        const project = store.data.projects.find(p => p.id === id);
+        if (project) {
+            store.deleteProject(id);
+            store.addTask({ title: project.title, priority: 'medium', notes: project.notes || '', tag: 'support' });
+        }
+        return;
+    }
+
+    reorderListFromDOM(targetList, targetType);
+}
+
+function attachTouchHandling() {
+    document.addEventListener('touchstart', (e) => {
+        const card = e.target.closest('.task-card');
+        if (!card || e.target.closest('.btn-icon')) return;
+
+        const list = card.closest('.task-list');
+        if (!list) return;
+
+        touchDragState = {
+            card,
+            list,
+            type: getCardTypeFromList(list),
+            id: card.dataset.id,
+            lastX: e.touches[0].clientX,
+            lastY: e.touches[0].clientY
+        };
+
+        card.classList.add('dragging');
+        e.preventDefault();
+    }, { passive: false });
+
+    document.addEventListener('touchmove', (e) => {
+        if (!touchDragState) return;
+
+        const touch = e.touches[0];
+        touchDragState.lastX = touch.clientX;
+        touchDragState.lastY = touch.clientY;
+
+        const target = document.elementFromPoint(touch.clientX, touch.clientY);
+        const targetList = target ? target.closest('.task-list') : null;
+
+        if (!targetList) return;
+
+        e.preventDefault();
+        const afterElement = getDragAfterElement(targetList, touch.clientY);
+        const { card } = touchDragState;
+
+        if (afterElement == null) {
+            targetList.appendChild(card);
+        } else {
+            targetList.insertBefore(card, afterElement);
+        }
+
+        targetList.classList.add('drag-over');
+        const otherLists = [listDaily, listProjects].filter(list => list !== targetList);
+        otherLists.forEach(list => list.classList.remove('drag-over'));
+    }, { passive: false });
+
+    document.addEventListener('touchend', () => {
+        if (!touchDragState) return;
+
+        const { card, list, type, lastX, lastY } = touchDragState;
+        const target = document.elementFromPoint(lastX, lastY);
+        const targetList = target ? target.closest('.task-list') : null;
+
+        const finalList = targetList || list;
+        card.classList.remove('dragging');
+        finalList.classList.remove('drag-over');
+
+        if (finalList && finalList !== list) {
+            moveCardToList(card, finalList);
+        } else if (finalList) {
+            reorderListFromDOM(finalList, type);
+        }
+
+        touchDragState = null;
+    });
+}
+
+attachTouchHandling();
+
 // Implementació Drag and Drop (Zones de destí)
 const columns = [listDaily, listProjects];
 columns.forEach(col => {
