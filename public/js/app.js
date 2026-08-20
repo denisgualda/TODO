@@ -26,6 +26,34 @@ const projectForm = document.getElementById('project-form');
 function openModal(modal) { modal.classList.remove('hidden'); }
 function closeModal(modal) { modal.classList.add('hidden'); }
 
+function openItemEditor(itemType, itemId) {
+    if (itemType === 'task') {
+        const task = store.data.tasks.find(t => t.id === itemId);
+        if (!task) return;
+
+        document.getElementById('task-id').value = task.id;
+        document.getElementById('task-title').value = task.title;
+        document.getElementById('task-priority').value = task.priority;
+        document.getElementById('task-notes').value = task.notes || '';
+        document.getElementById('task-modal-title').textContent = 'Editar Tasca';
+        openModal(document.getElementById('task-modal'));
+        return;
+    }
+
+    if (itemType === 'project') {
+        const project = store.data.projects.find(p => p.id === itemId);
+        if (!project) return;
+
+        document.getElementById('project-id').value = project.id;
+        document.getElementById('project-title').value = project.title;
+        document.getElementById('project-progress-range').value = project.progress;
+        document.getElementById('progress-value-display').textContent = project.progress + '%';
+        document.getElementById('project-notes').value = project.notes || '';
+        document.getElementById('project-modal-title').textContent = 'Editar Projecte';
+        openModal(document.getElementById('project-modal'));
+    }
+}
+
 btnAddTask.addEventListener('click', () => {
     taskForm.reset();
     document.getElementById('task-id').value = '';
@@ -182,30 +210,7 @@ document.body.addEventListener('click', (e) => {
 
     const btnEdit = e.target.closest('.btn-icon.edit');
     if (btnEdit) {
-        const id = btnEdit.dataset.id;
-        const type = btnEdit.dataset.type;
-        if (type === 'task') {
-            const task = store.data.tasks.find(t => t.id === id);
-            if (task) {
-                document.getElementById('task-id').value = task.id;
-                document.getElementById('task-title').value = task.title;
-                document.getElementById('task-priority').value = task.priority;
-                document.getElementById('task-notes').value = task.notes || '';
-                document.getElementById('task-modal-title').textContent = 'Editar Tasca';
-                openModal(document.getElementById('task-modal'));
-            }
-        } else if (type === 'project') {
-            const proj = store.data.projects.find(p => p.id === id);
-            if (proj) {
-                document.getElementById('project-id').value = proj.id;
-                document.getElementById('project-title').value = proj.title;
-                document.getElementById('project-progress-range').value = proj.progress;
-                document.getElementById('progress-value-display').textContent = proj.progress + '%';
-                document.getElementById('project-notes').value = proj.notes || '';
-                document.getElementById('project-modal-title').textContent = 'Editar Projecte';
-                openModal(document.getElementById('project-modal'));
-            }
-        }
+        openItemEditor(btnEdit.dataset.type, btnEdit.dataset.id);
     }
 
     const btnDel = e.target.closest('.btn-icon.delete');
@@ -215,7 +220,22 @@ document.body.addEventListener('click', (e) => {
 
         if (type === 'task') store.deleteTask(id);
         else if (type === 'project') store.deleteProject(id);
+    }
+});
 
+document.body.addEventListener('dblclick', (e) => {
+    const card = e.target.closest('.task-card');
+    if (!card || e.target.closest('.btn-icon')) return;
+
+    const task = store.data.tasks.find(t => t.id === card.dataset.id);
+    if (task) {
+        openItemEditor('task', task.id);
+        return;
+    }
+
+    const project = store.data.projects.find(p => p.id === card.dataset.id);
+    if (project) {
+        openItemEditor('project', project.id);
     }
 });
 
