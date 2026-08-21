@@ -33,7 +33,6 @@ function openItemEditor(itemType, itemId) {
 
         document.getElementById('task-id').value = task.id;
         document.getElementById('task-title').value = task.title;
-        document.getElementById('task-priority').value = task.priority;
         document.getElementById('task-notes').value = task.notes || '';
         document.getElementById('task-modal-title').textContent = 'Editar Tasca';
         openModal(document.getElementById('task-modal'));
@@ -88,13 +87,12 @@ taskForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const id = document.getElementById('task-id').value;
     const title = document.getElementById('task-title').value;
-    const priority = document.getElementById('task-priority').value;
     const notes = document.getElementById('task-notes').value;
 
     if (id) {
-        store.updateTask(id, { title, priority, notes });
+        store.updateTask(id, { title,notes });
     } else {
-        store.addTask({ title, priority, notes });
+        store.addTask({ title, notes });
     }
     closeModal(taskModal);
 });
@@ -297,7 +295,7 @@ function moveCardToList(card, targetList) {
         const project = store.data.projects.find(p => p.id === id);
         if (project) {
             store.deleteProject(id);
-            store.addTask({ title: project.title, priority: 'medium', notes: project.notes || '', tag: 'support' });
+            store.addTask({ title: project.title, notes: project.notes || '', tag: 'support' });
         }
         return;
     }
@@ -431,7 +429,7 @@ columns.forEach(col => {
                     const proj = store.data.projects.find(p => p.id === data.id);
                     if (proj) {
                         store.deleteProject(data.id);
-                        store.addTask({ title: proj.title, priority: 'medium', tag: 'support' });
+                        store.addTask({ title: proj.title, tag: 'support' });
                     }
                 }
             }
